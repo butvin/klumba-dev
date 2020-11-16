@@ -6,7 +6,7 @@ namespace Kl;
 
 class UserPaymentDbTable
 {
-    private $storage = [];
+    private array $storage = [];
 
     public function add($paymentData)
     {

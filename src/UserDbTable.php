@@ -6,7 +6,7 @@ namespace Kl;
 
 class UserDbTable
 {
-    private $storage = [
+    private array $storage = [
         [
             'id' => 1,
             'email' => 'testuser1@test.com',
@@ -27,10 +27,10 @@ class UserDbTable
     public function updateUser($data)
     {
         foreach ($this->storage as $index => $item) {
-            if ($item['id'] == $data['id']) {
+            if (isset($item['id']) && $item['id'] === $data['id']) {
                 unset($data['id']);
-
                 $this->storage[$index] = $data;
+
                 return true;
             }
         }

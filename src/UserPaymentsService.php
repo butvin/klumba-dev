@@ -1,79 +1,111 @@
 <?php
 
-
 namespace Kl;
-
 
 class UserPaymentsService
 {
-    private $userPaymentsDbTable;
+    private ?object $userPaymentsDbTable = null;
+    private ?object $userDbTable = null;
 
-    private $userDbTable;
+    private static ?UserDbTable $_userDbTable = null;
+    private static ?UserPaymentDbTable $_userPaymentsDbTable = null;
+    private static ?UserPaymentsService $UserPaymentsService = null;
+
+    /**
+     * Get UserDbTable instance.
+     */
+    public static function getUserDbTableInstance()
+    {
+        return
+            static::$_userDbTable === null ?
+                new static() : static::$_userDbTable;
+    }
+
+    /**
+     * Get UserPaymentsDbTable instance.
+     */
+    public static function getUserPaymentsDbTableInstance()
+    {
+        return
+            static::$_userPaymentsDbTable === null ?
+                new static() : static::$_userPaymentsDbTable;
+    }
+
+    /**
+     * Gets the UserPaymentsService instance (created on first usage).
+     */
+    public static function getUserPaymentsServiceInstance(): UserPaymentsService
+    {
+        if (static::$UserPaymentsService === null) {
+            static::$UserPaymentsService = new static();
+        }
+
+        return static::$UserPaymentsService;
+    }
 
     public function getUserPaymentsDbTable()
     {
-        if (!$this->userPaymentsDbTable) {
-            $this->userPaymentsDbTable = new UserPaymentDbTable();
-        }
-
-        return $this->userPaymentsDbTable;
+        return $this->userPaymentsDbTable ?? new UserPaymentDbTable();
     }
 
     public function getUserDbTable()
     {
-        if (!$this->userDbTable) {
-            $this->userDbTable = new UserDbTable();
-        }
-
-        return $this->userDbTable;
+        return $this->userDbTable ?? new UserDbTable();
     }
 
-    public function changeBalance(User $user, $amount)
+    public function calculateBalance(User $user, float $amount)
     {
         $userDbTable = $this->getUserDbTable();
-
         $userPaymentsDbTable = $this->getUserPaymentsDbTable();
 
-        $paymentType = $amount >= 0 ? 'in' : 'out';
-
+        $userId = $user->id;
         $userBalance = $user->balance;
+        $paymentType = $amount >= 0 ? 'in' : 'out';
+        $paymentAmount = abs($amount);
 
-        $payment = new UserPayment($user->id, $paymentType, $userBalance, abs($amount));
+        $payment = new UserPayment($userId, $paymentType, $userBalance, $paymentAmount);
 
         // add payment transaction
-        if (!$userPaymentsDbTable->add($payment->toArray())) {
-            $msg = sprintf('Failed to pop up user balance');
-
-            error_log($msg);
-
-            throw new \Exception($msg);
+        if ( !$userPaymentsDbTable->add($payment->toArray()) ) {
+            error_log(sprintf('Failed to add user balance'));
         }
 
+        // refresh a balance amount
         $user->balance += $amount;
 
-        // send email
-        $this->sendEmail($user->email);
-
-        // update user balance in db
-        $userDbTable->updateUser($user->toArray());
+        try {
+            // update user balance in db
+            $userDbTable->update($user->toArray());
+            // send email
+            $this->sendEmail($user->email);
+        } catch (\Exception $e) {
+            return
+                sprintf('User balance NOT updated, exception: %s', $e->getMessage());
+        }
 
         return true;
     }
 
-    public function sendEmail($userEmail)
+    /**
+     * @param  string  $toEmail
+     * @return bool
+     */
+    public function sendEmail(string $toEmail)
     {
-        $adminEmail = 'admin@test.com';
-
+        $from = 'admin@test.com';
         $subject = 'Balance update';
-
         $message = 'Hello! Your balance has been successfully updated!';
-
-        $headers = 'From: ' . $adminEmail . "\r\n" .
-            'Reply-To: ' . $adminEmail . "\r\n" .
+        $headers = 'From: ' . $from . "\r\n" .
+            'Reply-To: ' . $from . "\r\n" .
             'X-Mailer: PHP/' . phpversion();
 
-        mail($userEmail, $subject, $message, $headers);
+        mail($toEmail, $subject, $message, $headers);
 
         return true;
     }
+
+//    private function __construct() {}
+//    private function __clone() {}
+//    private function __wakeup() {}
+
 }

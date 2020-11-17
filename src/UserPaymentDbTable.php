@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Kl;
-
 
 class UserPaymentDbTable
 {

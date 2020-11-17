@@ -1,34 +1,39 @@
 <?php
-//declare (strict_types=1);
-
-use Kl\User;
-use Kl\UserPaymentsService;
+declare (strict_types=1);
 
 require_once 'vendor/autoload.php';
 
-$userPaymentService = new UserPaymentsService();
-
 $testData = require_once 'test-data.php';
-var_dump($testData);
-echo "<hr>";
+$userPaymentService = new Kl\UserPaymentsService();
 
-foreach ($testData as $testDataRow) {
-    var_dump($testDataRow);
-    list($userData, $userAmount) = $testDataRow;
-
-    $userModel = new User($userData['id'], $userData['balance'], $userData['email']);
-    var_dump($userModel);
+foreach ($testData as $key => $testDataRow) {
     try {
-        $userPaymentService->changeBalance($userModel, $userAmount);
-        $expectedBalance = $userData['balance'] + $userAmount;
-        $resultBalance = $userModel->balance;
-        $info = sprintf('User balance should be updated %s: %s', $expectedBalance, $expectedBalance);
+        list($userData, $amount) = $testDataRow;
+
+        $user = new Kl\User($userData['id'], $userData['balance'], $userData['email']);
+
+        $expectedBalance = $userData['balance'] + $amount;
+
+        $userPaymentService->calculateBalance($user, $amount);
+
+        $resultBalance = $user->balance;
+
+        $info = sprintf('
+            User balance should be updated: %g
+            [amount: %g],
+            [before: %g],
+            [current: %g]',
+            $expectedBalance,
+            $amount,
+            $userData['balance'],
+            $expectedBalance === $resultBalance ? $resultBalance : null
+        );
 
         $result = assert($expectedBalance === $resultBalance, $info);
     } catch (\Exception $e) {
-        $result = false;
+        $result = null;
         $info = sprintf('User balance should be updated, exception: %s', $e->getMessage());
     }
 
-    echo sprintf("[%s] %s\n", $result ? 'SUCCESS' : 'FAIL', $info);
+    echo sprintf("[%s] %s\n", $result ? 'SUCCESS' : 'FAIL', $info)."<br />";
 }

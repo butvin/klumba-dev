@@ -24,18 +24,17 @@ class UserDbTable
         ]
     ];
 
-    public function updateUser($data)
+    public function update(array $userData)
     {
         foreach ($this->storage as $index => $item) {
-            if (isset($item['id']) && $item['id'] === $data['id']) {
-                unset($data['id']);
-                $this->storage[$index] = $data;
-
+            if (isset($item['id']) && $item['id'] === $userData['id']) {
+                unset($userData['id']);
+                $this->storage[$index] = $userData;
                 return true;
             }
         }
 
-        $msg = sprintf('User %s not found', $data['id']);
+        $msg = sprintf('User %s not found', $userData['id']);
 
         error_log($msg);
 

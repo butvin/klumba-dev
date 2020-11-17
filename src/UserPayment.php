@@ -1,33 +1,34 @@
 <?php
 
-
 namespace Kl;
-
 
 class UserPayment
 {
-    public $id;
+    public int $userId;
+    public string $paymentType;
+    public float $userBalanceBefore;
+    public float $incomingAmount;
 
-    public $userId;
+    public ?int $id;
 
-    public $type;
-
-    public $balanceBefore;
-
-    public $amount;
-
-    public function __construct($userId, $type, $balanceBefore, $amount, $id = null)
-    {
+    public function __construct(
+        int $userId,
+        string $paymentType,
+        float $userBalanceBefore,
+        float $incomingAmount,
+        $id = null
+    ) {
         $this->id = $id;
         $this->userId = $userId;
-        $this->type = $type;
-        $this->balanceBefore = $balanceBefore;
-        $this->amount = $amount;
+        $this->paymentType = $paymentType;
+        $this->userBalanceBefore = $userBalanceBefore;
+        $this->incomingAmount = $incomingAmount;
     }
 
     public function toArray($conversionRule = 'underscore')
     {
         $result = [];
+
         $vars = get_object_vars($this);
 
         switch ($conversionRule) {

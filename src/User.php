@@ -8,8 +8,8 @@ class User
      * @var int
      */
     public int $id;
-    public float $balance;
-    public string $email;
+    private float $balance;
+    private string $email;
 
     public function __construct(int $id, float $balance, string $email)
     {
@@ -18,35 +18,23 @@ class User
         $this->email = $email;
     }
 
-    public function toArray($conversionRule = 'underscore')
+    public function getBalance() :float
     {
-        $result = [];
+        return $this->balance;
+    }
 
-        $vars = get_object_vars($this);
+    public function setBalance(float $balance) :float
+    {
+        return $this->balance = $balance;
+    }
 
-        switch ($conversionRule) {
-            case 'camelCase':
-                foreach ($vars as $field => $value) {
-                    $newField = preg_replace('/[^a-z0-9]+/i', ' ', $field);
-                    $newField = trim($newField);
-                    $newField = ucwords($newField);
-                    $newField = str_replace(' ', '', $newField);
-                    $newField = lcfirst($newField);
-                    $result[$newField] = $value;
-                }
+    public function getEmail() :string
+    {
+        return $this->email;
+    }
 
-                break;
-            case 'underscore':
-                foreach ($vars as $field => $value) {
-                    $newField = preg_replace('/[^a-z0-9]+/i', ' ', $field);
-                    $newField = trim($newField);
-                    $newField = str_replace(' ', '_', $newField);
-                    $newField = strtolower($newField);
-                    $result[$newField] = $value;
-                }
-                break;
-        }
-
-        return $result;
+    public function setEmail(string $email) :string
+    {
+        return $this->email = $email;
     }
 }

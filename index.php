@@ -1,35 +1,37 @@
 <?php
-declare (strict_types=1);
 
+declare (strict_types=1);
+/**
+ *
+ */
 require_once 'vendor/autoload.php';
 
-$testData = require_once 'test-data.php';
-$userPaymentService = new Kl\UserPaymentsService();
+//$testData = require_once 'test-data.php';
+$testData = require_once 'mock-payments-data.php';
+
+$userPaymentService = Kl\UserPaymentsService::getUserPaymentsService();
 
 foreach ($testData as $key => $testDataRow) {
     try {
         list($userData, $amount) = $testDataRow;
-
-        $user = new Kl\User($userData['id'], $userData['balance'], $userData['email']);
-
         $expectedBalance = $userData['balance'] + $amount;
 
-        $userPaymentService->calculateBalance($user, $amount);
-
-        $resultBalance = $user->balance;
-
-        $info = sprintf('
-            User balance should be updated: %g
-            [amount: %g],
-            [before: %g],
-            [current: %g]',
-            $expectedBalance,
-            $amount,
+        $user = new Kl\User(
+            $userData['id'],
             $userData['balance'],
-            $expectedBalance === $resultBalance ? $resultBalance : null
+            $userData['email']
         );
 
-        $result = assert($expectedBalance === $resultBalance, $info);
+        $userPaymentService->updateBalance($user, $amount);
+
+        $info = sprintf('User balance should be updated: %g [amount: %g], [before: %g], [current: %g]',
+            $user->getBalance(),
+            $amount,
+            $userData['balance'],
+            $user->getBalance() === $expectedBalance ? $user->getBalance() : null
+        );
+
+        $result = assert($expectedBalance === $user->getBalance(), $info);
     } catch (\Exception $e) {
         $result = null;
         $info = sprintf('User balance should be updated, exception: %s', $e->getMessage());
@@ -37,3 +39,6 @@ foreach ($testData as $key => $testDataRow) {
 
     echo sprintf("[%s] %s\n", $result ? 'SUCCESS' : 'FAIL', $info)."<br />";
 }
+
+$users = $userPaymentService::getUserPaymentsDbTable();
+var_dump($users);

@@ -11,7 +11,7 @@ return [
     ],
     [
         [
-            'id' => 2,
+            'id' => 1,
             'email' => 'testuser2@test.com',
             'balance' => 9999.45
         ],

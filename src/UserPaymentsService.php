@@ -2,110 +2,132 @@
 
 namespace Kl;
 
-class UserPaymentsService
+final class UserPaymentsService
 {
-    private ?object $userPaymentsDbTable = null;
-    private ?object $userDbTable = null;
-
-    private static ?UserDbTable $_userDbTable = null;
-    private static ?UserPaymentDbTable $_userPaymentsDbTable = null;
-    private static ?UserPaymentsService $UserPaymentsService = null;
+    /**
+     * Use necessary traits.
+     */
+    use \Kl\AppHelper;
+    use \Kl\DataConversion;
 
     /**
-     * Get UserDbTable instance.
+     * Storage for users table rows.
+     *
+     * @var UserDbTable|null
      */
-    public static function getUserDbTableInstance()
+    private static ?\Kl\UserDbTable $userDbTable = null;
+
+    /**
+     * Storage for payments table rows.
+     *
+     * @var UserPaymentDbTable|null
+     */
+    private static ?\Kl\UserPaymentDbTable $userPaymentsDbTable = null;
+
+    /**
+     * @var UserPaymentsService|null
+     */
+    private static ?\Kl\UserPaymentsService $userPaymentsService = null;
+
+    /**
+     * Gets UserDbTable instance via lazy initialization (created on first usage)
+     *
+     * @return UserDbTable
+     */
+    public static function getUserDbTable() :UserDbTable
     {
-        return
-            static::$_userDbTable === null ?
-                new static() : static::$_userDbTable;
+        if (static::$userDbTable === null) {
+            static::$userDbTable = new UserDbTable();
+        }
+
+        return static::$userDbTable;
     }
 
     /**
-     * Get UserPaymentsDbTable instance.
+     * Gets payments transaction table records.
+     *
+     * @return UserPaymentDbTable
      */
-    public static function getUserPaymentsDbTableInstance()
+    public static function getUserPaymentsDbTable() :UserPaymentDbTable
     {
-        return
-            static::$_userPaymentsDbTable === null ?
-                new static() : static::$_userPaymentsDbTable;
+        if (static::$userPaymentsDbTable === null) {
+            static::$userPaymentsDbTable = new UserPaymentDbTable();
+        }
+
+        return static::$userPaymentsDbTable;
     }
 
     /**
      * Gets the UserPaymentsService instance (created on first usage).
      */
-    public static function getUserPaymentsServiceInstance(): UserPaymentsService
+    public static function getUserPaymentsService(): UserPaymentsService
     {
-        if (static::$UserPaymentsService === null) {
-            static::$UserPaymentsService = new static();
+        if (static::$userPaymentsService === null) {
+            static::$userPaymentsService = new UserPaymentsService();
         }
 
-        return static::$UserPaymentsService;
-    }
-
-    public function getUserPaymentsDbTable()
-    {
-        return $this->userPaymentsDbTable ?? new UserPaymentDbTable();
-    }
-
-    public function getUserDbTable()
-    {
-        return $this->userDbTable ?? new UserDbTable();
-    }
-
-    public function calculateBalance(User $user, float $amount)
-    {
-        $userDbTable = $this->getUserDbTable();
-        $userPaymentsDbTable = $this->getUserPaymentsDbTable();
-
-        $userId = $user->id;
-        $userBalance = $user->balance;
-        $paymentType = $amount >= 0 ? 'in' : 'out';
-        $paymentAmount = abs($amount);
-
-        $payment = new UserPayment($userId, $paymentType, $userBalance, $paymentAmount);
-
-        // add payment transaction
-        if ( !$userPaymentsDbTable->add($payment->toArray()) ) {
-            error_log(sprintf('Failed to add user balance'));
-        }
-
-        // refresh a balance amount
-        $user->balance += $amount;
-
-        try {
-            // update user balance in db
-            $userDbTable->update($user->toArray());
-            // send email
-            $this->sendEmail($user->email);
-        } catch (\Exception $e) {
-            return
-                sprintf('User balance NOT updated, exception: %s', $e->getMessage());
-        }
-
-        return true;
+        return static::$userPaymentsService;
     }
 
     /**
-     * @param  string  $toEmail
-     * @return bool
+     * Update users balance.
+     *
+     * @param  User  $user
+     * @param  float  $amount
+     * @return bool|string
      */
-    public function sendEmail(string $toEmail)
+    public function updateBalance(\Kl\User $user, float $amount)
     {
-        $from = 'admin@test.com';
-        $subject = 'Balance update';
-        $message = 'Hello! Your balance has been successfully updated!';
-        $headers = 'From: ' . $from . "\r\n" .
-            'Reply-To: ' . $from . "\r\n" .
-            'X-Mailer: PHP/' . phpversion();
+        try {
+            // gets users & transactions records
+            $usersStorage = self::getUserDbTable();
+            $paymentsStorage = self::getUserPaymentsDbTable();
 
-        mail($toEmail, $subject, $message, $headers);
+            // create payment record
+            $payment = new UserPayment(
+                $user->id,
+                $amount >= 0 ? 'in' : 'out',
+                $user->getBalance(),
+                abs($amount)
+            );
+
+            // add payment transaction
+            $paymentsStorage->add($this->toArray($payment));
+            // var_dump($paymentsStorage->getStorage());
+
+            // refresh a balance amount
+            $user->setBalance($user->getBalance() + $amount);
+
+            // update user balance in db
+            $usersStorage->update($this->toArray($user));
+
+            // send email
+            $this->sendEmail($user->getEmail());
+        } catch (\Exception $e) {
+            return
+                sprintf('User balance NOT updated. Exception: %s', $e->getMessage());
+        }
 
         return true;
     }
 
-//    private function __construct() {}
-//    private function __clone() {}
-//    private function __wakeup() {}
+
+    /**
+     * UserPaymentsService constructor.
+     * Is not allowed to call from outside
+     * to prevent from creating multiple instances. To use instance, call
+     * Kl\UserPaymentsService::getUserPaymentsService() instead.
+     */
+    private function __construct() {}
+
+    /**
+     * Prevent the instance from being cloned.
+     */
+    private function __clone() {}
+
+    /**
+     * Prevent from being un serialized.
+     */
+    private function __wakeup() {}
 
 }

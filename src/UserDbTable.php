@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Kl;
-
 
 class UserDbTable
 {
@@ -24,9 +22,14 @@ class UserDbTable
         ]
     ];
 
+    public function getStorage() :array
+    {
+        return $this->storage;
+    }
+
     public function update(array $userData)
     {
-        foreach ($this->storage as $index => $item) {
+        foreach ($this->getStorage() as $index => $item) {
             if (isset($item['id']) && $item['id'] === $userData['id']) {
                 unset($userData['id']);
                 $this->storage[$index] = $userData;

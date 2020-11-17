@@ -4,16 +4,34 @@ namespace Kl;
 
 class UserPaymentDbTable
 {
+    /**
+     * Storage for users payments transactions.
+     *
+     * @var array
+     */
     private array $storage = [];
 
-    public function add($paymentData)
+    /**
+     * Gets storage data.
+     *
+     * @return array
+     */
+    public function getStorage() :array
     {
-        if (empty($paymentData['id'])) {
-            $paymentData['id'] = count($this->storage) + 1;
+        return $this->storage;
+    }
+
+    /**
+     * @param  array  $payment
+     * @return bool
+     */
+    public function add(array $payment)
+    {
+        if (empty($payment['id'])) {
+            $payment['id'] = count($this->getStorage()) + 1;
         }
 
-        $this->storage[] = $paymentData;
-
-        return true;
+        return
+            ($this->storage[] = $payment) ? true : false;
     }
 }

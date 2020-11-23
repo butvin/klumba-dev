@@ -111,6 +111,11 @@ final class UserPaymentsService
         return true;
     }
 
+    public function drawTransTable(array $transactions) :void
+    {
+        $this->drawTransactionsTable($transactions);
+    }
+
 
     /**
      * UserPaymentsService constructor.

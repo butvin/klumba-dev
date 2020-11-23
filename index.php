@@ -1,22 +1,7 @@
 <?php
 
 declare (strict_types=1);
-?>
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta lang="ru" charset="utf-8">
-    <title>Front</title>
-</head>
-<body>
-<div style="background: #9DC8C8; color: #1F2124; height: 25vh; font-weight: lighter; font-size: 1.25rem;">
-    <script type="module" src="index.js"></script>
-    <span id="output"></span>
-</div>
 
-</body>
-</html>
-<?php
 /**
  * Composer
  */
@@ -34,10 +19,12 @@ $testData = require_once 'test-data.php';
 $userPaymentService = Kl\UserPaymentsService::getUserPaymentsService();
 
 $transactions = $userPaymentService::getUserPaymentsDbTable()->getStorage();
-var_dump($transactions);
-foreach ($transactions as $transactionItem) {
-    var_dump($transactionItem);
-}
+
+//var_dump($transactions);
+//foreach ($transactions as $transactionItem) {
+//    var_dump($transactionItem);
+//}
+
 /**
  * Fetch test transactions data.
  */
@@ -76,10 +63,5 @@ foreach ($testData as $key => $testDataRow) {
     echo sprintf("[%s] %s\n", $result ? 'SUCCESS' : 'FAIL', $info)."<br />";
 }
 
-//$users = $userPaymentService::getUserDbTable()->getStorage();
-//var_dump($users);
-//
 $transactions = $userPaymentService::getUserPaymentsDbTable()->getStorage();
-foreach ($transactions as $transactionItem) {
-    var_dump($transactionItem);
-}
+$userPaymentService->drawTransTable($transactions);

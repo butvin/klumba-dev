@@ -2,14 +2,16 @@
 
 namespace Kl;
 
-class UserPaymentDbTable
+class UserPaymentDbTable implements \Kl\DbTable
 {
     /**
      * Storage for users payments transactions.
      *
      * @var array
      */
-    private array $storage = [];
+    private array $storage = [
+        // [666, 'in', 666.66, -111.11, 999]
+    ];
 
     /**
      * Gets storage data.

@@ -76,7 +76,7 @@ final class UserPaymentsService
      * @param  float  $amount
      * @return bool|string
      */
-    public function updateBalance(\Kl\User $user, float $amount)
+    public function changeBalance(\Kl\User $user, float $amount)
     {
         try {
             // gets users & transactions records
@@ -92,7 +92,7 @@ final class UserPaymentsService
             );
 
             // add payment transaction
-            $paymentsStorage->add($this->toArray($payment));
+            $paymentsStorage->add($this->toArray($payment, 'underscore'));
             // var_dump($paymentsStorage->getStorage());
 
             // refresh a balance amount

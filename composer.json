@@ -4,11 +4,12 @@
   "license": "MIT",
   "type": "project",
   "require": {
-    "php": "^7.0"
+    "php": "^7.4"
   },
   "autoload": {
     "psr-4": {
-      "Kl\\": "src/"
+      "Kl\\": "src/",
+      "Kl\\Helper\\": "src/helpers/"
     }
   }
 }

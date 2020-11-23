@@ -4,8 +4,8 @@ use Kl\User;
 use Kl\UserPaymentsService;
 
 require_once 'vendor/autoload.php';
-
-$userPaymentService = new UserPaymentsService();
+$userPaymentService = Kl\UserPaymentsService::getUserPaymentsService()
+//$userPaymentService = new UserPaymentsService();
 
 $testData = require_once 'test-data.php';
 

@@ -2,7 +2,7 @@
 
 namespace Kl;
 
-class UserDbTable
+class UserDbTable implements \Kl\DbTable
 {
     private array $storage = [
         [
@@ -19,6 +19,11 @@ class UserDbTable
             'id' => 3,
             'email' => 'testuser3@test.com',
             'balance' => 0.45
+        ],
+        [
+            'id' => 4,
+            'email' => 'testuser4@test.com',
+            'balance' => 1111.45
         ]
     ];
 
@@ -42,5 +47,21 @@ class UserDbTable
         error_log($msg);
 
         throw new \Exception($msg);
+    }
+
+    /**
+     * Add user.
+     *
+     * @param  array  $user
+     * @return bool
+     */
+    public function add(array $user)
+    {
+        if (empty($user['id'])) {
+            $user['id'] = count($this->getStorage()) + 1;
+        }
+
+        return
+            ($this->storage[] = $user) ? true : false;
     }
 }
